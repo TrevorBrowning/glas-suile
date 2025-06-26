@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import userRoutes from "./routes/userRoutes"; // <-- FIX
+import projectRoutes from "./routes/projectRoutes";
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // API Routes
 app.use("/api/users", userRoutes);
+app.use("/api/projects", projectRoutes);
 
 const startServer = async () => {
   try {
