@@ -1,78 +1,77 @@
 import { Request, Response } from "express";
-import UserModel from "../models/userModel";
-import bcrypt = require("bcryptjs");
+import asyncHandler from "express-async-handler";
+import UserModel from "../models/userModel"; // <-- FIX
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-export async function registerUser(req: Request, res: Response) {
-  try {
-    let { name, email, password } = req.body;
+const generateToken = (id: string) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("Server misconfiguration: JWT_SECRET not found");
+  }
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+};
+
+export const registerUser = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { name, email, password } = req.body;
+
     if (!name || !email || !password) {
-      res.status(400).json({ message: "Please fill out all fields" });
-      return;
+      res.status(400);
+      throw new Error("Please add all fields");
     }
-    let dupeEmail = await UserModel.findOne({ email });
-    if (dupeEmail) {
-      res
-        .status(400)
-        .json({ message: "An account with this email is already registered" });
-      return;
+
+    const userExists = await UserModel.findOne({ email });
+    if (userExists) {
+      res.status(400);
+      throw new Error("User already exists");
     }
-    const gSalt = await bcrypt.genSalt(10);
-    const hashPass = await bcrypt.hash(password, gSalt);
-    let newUser = await UserModel.create({
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await UserModel.create({
       name,
       email,
-      password: hashPass,
+      password: hashedPassword,
     });
-    if (!process.env.JWT_SECRET) {
-      throw new Error("FATAL ERROR: JWT_SECRET is not defined in .env file");
-    }
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "30d",
-    });
-    res.status(201).json({
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      token: token,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Something went wrong on our end." });
-  }
-}
 
-export async function loginUser(req: Request, res: Response) {
-  try {
-    let { email, password } = req.body;
-    if (!email || !password) {
-      res.status(400).json({ message: "Please provide an email and password" });
-      return;
+    if (user) {
+      res.status(201).json({
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id.toString()),
+      });
+    } else {
+      res.status(400);
+      throw new Error("Invalid user data");
     }
-    const user = await UserModel.findOne({ email });
-    if (!user) {
-      res.status(400).json({ message: "Invalid email and/or password" });
-      return;
-    }
-    const isWait = await bcrypt.compare(password, user.password);
-    if (!isWait) {
-      res.status(400).json({ message: "Invalid email and/or password" });
-      return;
-    }
-    if (!process.env.JWT_SECRET) {
-      throw new Error("FATAL ERROR: JWT_SECRET is not defined in .env file");
-    }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "30d",
-    });
-    res.status(200).json({
-      _id: user._id,
+  }
+);
+
+export const loginUser = asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const user = await UserModel.findOne({ email });
+
+  if (
+    user &&
+    user.password &&
+    (await bcrypt.compare(password, user.password))
+  ) {
+    res.json({
+      _id: user.id,
       name: user.name,
       email: user.email,
-      token,
+      token: generateToken(user._id.toString()),
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Something went wrong on our end" });
+  } else {
+    res.status(400);
+    throw new Error("Invalid credentials");
   }
-}
+});
+
+export const getMe = asyncHandler(async (req: any, res: Response) => {
+  res.status(200).json(req.user);
+});
