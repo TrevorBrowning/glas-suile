@@ -130,10 +130,13 @@ const handleDelete = async () => {
   isLoading.value = true
   errorMessage.value = null
   try {
-    const response = await fetch(`http://localhost:5000/api/projects/${props.project._id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${authStore.token}` },
-    })
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.project._id}`,
+      {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authStore.token}` },
+      },
+    )
 
     if (response.ok) {
       emit('projectDeleted', props.project._id)
