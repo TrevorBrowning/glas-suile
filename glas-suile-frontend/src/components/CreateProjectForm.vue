@@ -81,7 +81,6 @@ const handleCreateProject = async () => {
 
     if (response.ok) {
       emit('projectCreated', data)
-
       newTitle.value = ''
       newDescription.value = ''
     } else {

@@ -81,7 +81,6 @@ const props = defineProps<{
 const emit = defineEmits(['projectDeleted', 'projectUpdated'])
 
 const authStore = useAuthStore()
-
 const isEditing = ref(false)
 const editTitle = ref('')
 const editDescription = ref('')
@@ -98,17 +97,20 @@ const handleUpdate = async () => {
   isLoading.value = true
   errorMessage.value = null
   try {
-    const response = await fetch(`http://localhost:5000/api/projects/${props.project._id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/projects/${props.project._id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authStore.token}`,
+        },
+        body: JSON.stringify({
+          title: editTitle.value,
+          description: editDescription.value,
+        }),
       },
-      body: JSON.stringify({
-        title: editTitle.value,
-        description: editDescription.value,
-      }),
-    })
+    )
 
     const updatedProject = await response.json()
     if (response.ok) {
