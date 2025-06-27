@@ -66,7 +66,7 @@ onMounted(async () => {
   isLoading.value = true
   errorMessage.value = null
   try {
-    const response = await fetch('http://localhost:5000/api/projects', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${authStore.token}` },
     })
