@@ -5,57 +5,27 @@
       <p class="mt-2 text-lg text-gray-600">Welcome back! Here are your projects.</p>
     </div>
 
-    <div class="mb-10 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">Create a New Project</h2>
-      <form @submit.prevent="handleCreateProject" class="space-y-4">
-        <div>
-          <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-          <input
-            type="text"
-            id="title"
-            v-model="newTitle"
-            placeholder="Enter project title..."
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-        <div>
-          <label for="description" class="block text-sm font-medium text-gray-700"
-            >Description</label
-          >
-          <input
-            type="text"
-            id="description"
-            v-model="newDescription"
-            placeholder="Enter project description..."
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-        <button
-          type="submit"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Add New Project
-        </button>
-      </form>
-    </div>
+    <CreateProjectForm @projectCreated="addProjectToList" />
 
     <div>
       <h2 class="text-xl font-semibold mb-4 text-gray-800">Your Projects</h2>
 
-      <div class="space-y-4">
-        <div
-          v-for="project in projects"
-          :key="project._id"
-          class="bg-white p-5 rounded-lg shadow border border-gray-200"
-        >
-          <h3 class="font-bold text-lg text-gray-900">{{ project.title }}</h3>
-          <p class="text-gray-600 mt-1">{{ project.description }}</p>
-        </div>
-
-        <div v-if="projects.length === 0" class="text-center text-gray-500 py-10">
-          You don't have any projects yet. Use the form above to create one!
-        </div>
+      <div
+        v-if="errorMessage"
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+        role="alert"
+      >
+        <span class="block sm:inline">{{ errorMessage }}</span>
       </div>
+
+      <div v-if="isLoading" class="text-center text-gray-500 py-10">Loading projects...</div>
+
+      <ProjectList
+        v-else
+        :projects="projects"
+        @deleteProject="removeProjectFromList"
+        @updateProject="updateProjectInList"
+      />
     </div>
   </div>
 </template>
@@ -63,6 +33,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import CreateProjectForm from '@/components/createProjectForm.vue'
+import ProjectList from '@/components/projectList.vue'
 
 interface Project {
   _id: string
@@ -70,59 +42,44 @@ interface Project {
   description: string
 }
 
-const newTitle = ref('')
-const newDescription = ref('')
-
-const authStore = useAuthStore()
+const errorMessage = ref<string | null>(null)
+const isLoading = ref(false)
 const projects = ref<Project[]>([])
+const authStore = useAuthStore()
+
+const addProjectToList = (newProject: Project) => {
+  projects.value.push(newProject)
+}
+
+const removeProjectFromList = (projectId: string) => {
+  projects.value = projects.value.filter((p) => p._id !== projectId)
+}
+
+const updateProjectInList = (updatedProject: Project) => {
+  const index = projects.value.findIndex((p) => p._id === updatedProject._id)
+  if (index !== -1) {
+    projects.value[index] = updatedProject
+  }
+}
+
 onMounted(async () => {
+  isLoading.value = true
+  errorMessage.value = null
   try {
     const response = await fetch('http://localhost:5000/api/projects', {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
+      headers: { Authorization: `Bearer ${authStore.token}` },
     })
-
     if (response.ok) {
-      const data = await response.json()
-      projects.value = data
+      projects.value = await response.json()
     } else {
       const errorData = await response.json()
-      console.error('Failed to fetch projects:', errorData.message)
+      errorMessage.value = errorData.message || 'Failed to fetch projects.'
     }
   } catch (error) {
-    console.error('An error occurred while fetching projects:', error)
+    errorMessage.value = 'An unexpected error occurred while fetching projects.'
+  } finally {
+    isLoading.value = false
   }
 })
-
-const handleCreateProject = async () => {
-  try {
-    const response = await fetch('http://localhost:5000/api/projects', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: JSON.stringify({
-        title: newTitle.value,
-        description: newDescription.value,
-      }),
-    })
-
-    if (response.ok) {
-      const newProject = await response.json()
-      projects.value.push(newProject)
-      console.log('Project created!', newProject)
-
-      newTitle.value = ''
-      newDescription.value = ''
-    } else {
-      const errorData = await response.json()
-      console.error('Failed to create project:', errorData.message)
-    }
-  } catch (error) {
-    console.error('An error occurred:', error)
-  }
-}
 </script>
