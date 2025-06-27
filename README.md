@@ -1,68 +1,33 @@
-# Glas Suile Project
+# Glas Suile - Full-Stack Authentication & Dashboard Platform
 
-This repository contains the full-stack infrastructure for the Glas Suile application, including a backend API and a frontend dashboard.
+This project is a complete, full-stack application built from the ground up to provide a secure and robust platform for user authentication and data management. It serves as a foundational "engine" that can be connected to any number of frontend applications.
 
-## Project Structure
-
-This project is a monorepo containing two primary packages:
-
-- `glas-suile-api/`: The backend API built with Express.js, TypeScript, and MongoDB. It handles user authentication and data management.
-- `glas-suile-frontend/`: The frontend dashboard built with Vue.js and TypeScript. It provides the user interface for interacting with the API.
+The repository contains two primary, independent packages in a monorepo structure: a backend API and a frontend dashboard.
 
 ---
 
-## Getting Started
+## Core Components
 
-To run this project locally, you will need to set up and run both the backend and frontend services.
+### 1. `glas-suile-api` (Backend)
 
-### Backend Setup (glas-suile-api)
+A secure REST API built with Node.js and Express. It is the core of the platform, responsible for:
+-   **User Authentication:** Handling user registration with password hashing (bcrypt) and login via secure JWT (JSON Web Token) authentication.
+-   **Protected Routes:** Utilizes custom middleware to protect endpoints, ensuring only authenticated users can access or modify their own data.
+-   **Data Management:** Provides a full suite of CRUD (Create, Read, Update, Delete) endpoints for managing user-specific resources (in this case, "projects").
+-   **Database:** Connects to a MongoDB Atlas database using Mongoose for data modeling and persistence.
 
-The backend server handles all API logic.
+### 2. `glas-suile-frontend` (Frontend Dashboard)
 
-1.  **Navigate to the API directory:**
+A modern, reactive Single-Page Application (SPA) built with Vue 3. It serves as a user-facing dashboard and control panel for the API, featuring:
+-   **Dynamic UI:** The interface changes based on the user's authentication state, handled by a central Pinia store.
+-   **Full CRUD Interface:** Allows logged-in users to create, view, update, and delete their projects with real-time UI updates.
+-   **Secure Frontend Routing:** Uses Vue Router navigation guards to protect pages like the dashboard from unauthenticated access.
+-   **Persistent State:** Leverages `localStorage` to maintain user login sessions across page reloads for a seamless user experience.
 
-    ```bash
-    cd glas-suile-api
-    ```
+---
 
-2.  **Create Environment File:**
-    Create a `.env` file in the `glas-suile-api` root. This file is required to store your database connection string and JWT secret. Add the following variables:
+## Technology Stack
 
-    ```
-    MONGO_URI=your_mongodb_connection_string
-    JWT_SECRET=your_super_secret_jwt_key
-    ```
-
-3.  **Install Dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-4.  **Run the Server:**
-    ```bash
-    npm start
-    ```
-    The API will be running on `http://localhost:5000`.
-
-### Frontend Setup (glas-suile-frontend)
-
-The frontend application provides the user interface.
-
-1.  **Navigate to the frontend directory (from the root):**
-
-    ```bash
-    cd glas-suile-frontend
-    ```
-
-2.  **Install Dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Run the Development Server:**
-    ```bash
-    npm run dev
-    ```
-    The Vue application will be running on `http://localhost:5173` (or the next available port).
+-   **Backend:** Node.js, Express.js, TypeScript, MongoDB, Mongoose, JWT, Bcrypt.js
+-   **Frontend:** Vue 3 (Composition API), Pinia (State Management), Vue Router, Tailwind CSS, Vite
+-   **Deployment:** The backend API is hosted on Render, and the frontend application is hosted on Vercel.
