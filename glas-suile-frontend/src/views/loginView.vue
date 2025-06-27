@@ -33,10 +33,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { RouterLink, useRouter } from 'vue-router'
 
 const email = ref('')
 const password = ref('')
 const authStore = useAuthStore()
+const router = useRouter()
 
 const handleLogin = async () => {
   try {
@@ -53,9 +55,9 @@ const handleLogin = async () => {
 
     if (response.ok) {
       authStore.setAuthData(data, data.token)
+      router.push('/dashboard')
     } else {
       console.error('Login Failed:', data.message)
-      // You could show this error to the user in the UI
     }
   } catch (error) {
     console.error('An error occurred:', error)

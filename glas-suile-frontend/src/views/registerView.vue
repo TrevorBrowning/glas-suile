@@ -62,10 +62,8 @@ const handleRegister = async () => {
 
     if (response.ok) {
       console.log('Registration Successful', data)
-      // You could redirect here later, e.g., router.push('/login')
     } else {
       console.error('Registration Failed:', data.message)
-      // You could show this error to the user in the UI
     }
   } catch (error) {
     console.error('An error occurred:', error)

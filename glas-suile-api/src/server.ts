@@ -2,20 +2,17 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
-import userRoutes from "./routes/userRoutes"; // <-- FIX
+import userRoutes from "./routes/userRoutes";
 import projectRoutes from "./routes/projectRoutes";
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 

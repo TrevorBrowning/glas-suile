@@ -14,7 +14,7 @@ export const createProject = asyncHandler(async (req: any, res: Response) => {
   const project = await ProjectModel.create({
     title,
     description,
-    user: req.user.id, // req.user is attached by our protect middleware
+    user: req.user.id,
   });
 
   res.status(201).json(project);
