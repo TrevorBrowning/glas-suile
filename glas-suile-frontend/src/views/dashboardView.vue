@@ -33,8 +33,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import CreateProjectForm from '@/components/createProjectForm.vue'
-import ProjectList from '@/components/projectList.vue'
+import CreateProjectForm from '@/components/CreateProjectForm.vue'
+import ProjectList from '@/components/ProjectList.vue'
 
 interface Project {
   _id: string
